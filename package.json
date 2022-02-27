@@ -1,0 +1,23 @@
+{
+  "name": "fullstackopenpart3",
+  "version": "1.0.0",
+  "description": "Exerices from part 3 - Fullstackopen bootcamp",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": ".git"
+  },
+  "author": "Agustí Martínez Bergillo",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "2.0.15"
+  },
+  "dependencies": {
+    "express": "4.17.3"
+  }
+}
