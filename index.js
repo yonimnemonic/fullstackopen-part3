@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
-
+const cors = require('cors')
+app.use(cors())
 app.use(express.json())
 
 //Morgan logs
@@ -12,7 +13,7 @@ app.use(morgan((tokens, req, res) => {
       tokens.status(req, res),
       tokens.res(req, res, 'content-length'), '-',
       tokens['response-time'](req, res), 'ms',
-      JSON.stringify(req.body)
+      JSON.stringify(req.body) //shows post request ...
     ].join(' ')
   }))
 
@@ -92,8 +93,6 @@ app.post('/api/persons/', (request, response) => {
             error: "Name allready exist in the phone book"
         })
     }else{
-        // console.log("addPerson array", addPerson)
-        // console.log(persons);
         persons.push(addPerson)
         response.json(newPerson)
     }
