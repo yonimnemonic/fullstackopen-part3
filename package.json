@@ -6,7 +6,10 @@
   "scripts": {
     "test": "test",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "deploy": "git push heroku main",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",    
+    "logs:prod": "heroku logs --tail"
   },
   "repository": {
     "type": "git",
@@ -18,8 +21,8 @@
     "nodemon": "2.0.15"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "2.8.5",
     "express": "4.17.3",
-    "morgan": "^1.10.0"
+    "morgan": "1.10.0"
   }
 }
