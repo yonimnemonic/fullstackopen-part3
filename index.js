@@ -2,6 +2,13 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+
+//Mongoose
+const person = require('./models/Person')
+
+console.log('contenido de person:',person);
+
+
 app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
@@ -18,42 +25,13 @@ app.use(morgan((tokens, req, res) => {
     ].join(' ')
   }))
 
-let persons = [
-  {
-      id:1,
-      name:"Arto Hellas",
-      number: "040-123456"
-  },
-  {
-      id:2,
-      name:"Ada Lovelace",
-      number: "39-44-5152256"
-  },
-  {
-      id:3,
-      name:"Dan Abramov",
-      number: "12-43-234345"
-  },
-  {
-      id:4,
-      name:"Mary Poppendieck",
-      number: "040-123456"
-  },
-]
 
-app.get('/info', (request, response) => {
-    let date = new Date()
-    let ids = persons.length
-    response.send(`
-    Phonebook has info for ${ids} people <br>
-     ${date}
-    `)
-})
+
 
 //one person request
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     const id = Number(request.params.id)
-    const people = persons.find( person => person.id === id )
+    const people = person.find( person => person.id === id )
     if(people){
         response.json(people)
     }else{
@@ -62,46 +40,54 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
   //delete a person request
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
     const id = Number(request.params.id)
     people = persons.filter( person => person.id !== id )
 
     response.status(204).end()
 })
 
-//create person request
-app.post('/api/persons/', (request, response) => {
 
-    const newPerson = request.body
+app.post('/api/persons/', (request, response, next) => {
 
-    let personName = persons.filter( name => name.name == newPerson.name)
-    let integer = Math.random(1)*100
+    const body = request.body
 
-    let addPerson = {
-        id: Math.trunc(integer),
-        name: newPerson.name,
-        number: newPerson.number
-    }
+    const newPerson = body.name
+    const newNumber = body.number
 
-    
-    if( !newPerson.name || !newPerson.number){
+    const persons = new person({
+        name: newPerson,
+        phone: newNumber,
+    })
+ 
+
+    if (!newPerson || !newNumber) {
         response.status(400).json({
             error: "Missing name or number"
         })
-        
-    }else if( !(personName.length === 0) ){
-        response.status(400).json({
-            error: "Name allready exist in the phone book"
-        })
-    }else{
-        persons.push(addPerson)
-        response.json(newPerson)
+
+    // } else if (!(persons.name.length === 0)) {
+    //     response.status(400).json({
+    //         error: "Name allready exist in the phone book"
+    //     })
+    } else {
+        persons.save()
+        .then(savedPerson =>  savedPerson.toJSON())
+        .then(personSaved => {
+            console.log(`added ${persons.name} number ${persons.phone} to phonebook`)
+            response.json(personSaved)
+            mongoose.connection.close()
+            })
+        .catch(error => next(error))
     }
 
 })
 
-app.get('/api/persons', (request, response) => {
-  response.json(persons)
+app.get('/api/persons', (request, response, next) => {
+person.find({}).then(result => {
+    response.json(result)
+    mongoose.connection.close()
+  }) 
 })
 
 const PORT = process.env.PORT || 3001
