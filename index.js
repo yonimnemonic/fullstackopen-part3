@@ -1,17 +1,19 @@
+require('./models/Person')
+
+//exports model from Person
+const persons = require('./models/Person')
+
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
-
-//Mongoose
-const person = require('./models/Person')
-
-console.log('contenido de person:',person);
-
+const { response } = require('express')
 
 app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
+
+
 
 //Morgan logs
 app.use(morgan((tokens, req, res) => {
@@ -26,9 +28,12 @@ app.use(morgan((tokens, req, res) => {
   }))
 
 
+app.get(('/hello/', (request, response,next) =>{
+  response('Helo World')
 
+}))
 
-//one person request
+//One person request
 app.get('/api/persons/:id', (request, response, next) => {
     const id = Number(request.params.id)
     const people = person.find( person => person.id === id )
@@ -39,12 +44,36 @@ app.get('/api/persons/:id', (request, response, next) => {
     }
 })
 
-  //delete a person request
+//delete a person request
 app.delete('/api/persons/:id', (request, response, next) => {
-    const id = Number(request.params.id)
-    people = persons.filter( person => person.id !== id )
+  const {id} = request.params
+    persons.findByIdAndDelete(id)
+    .then( result => {
+      console.log('result:',result);
+        response.status(204).end()
+        connection.close()
+    })
+    .catch( error => next(error))
+    console.log('Error from delete middleware',error)
+    response.status(400).send({ error: 'malformed id' })
+})
 
-    response.status(204).end()
+//modify a person request
+app.put('/api/persons/:id', (request, response, next) => {
+  const {id} = request.params
+  const newUpdate = request.body
+  
+  const contactUpdate = {
+    name: newperson.name,
+    phone: newUpdate.number
+  }
+    persons.findByIdAndUpdate( id, contactUpdate, { new: true } )
+    .then( result => {
+      console.log('Person:',result);
+        response.status(204).end()
+    })
+    // .catch( err => mext(err))
+
 })
 
 
@@ -55,23 +84,17 @@ app.post('/api/persons/', (request, response, next) => {
     const newPerson = body.name
     const newNumber = body.number
 
-    const persons = new person({
+    const person = new persons({
         name: newPerson,
         phone: newNumber,
     })
- 
-
     if (!newPerson || !newNumber) {
         response.status(400).json({
             error: "Missing name or number"
         })
 
-    // } else if (!(persons.name.length === 0)) {
-    //     response.status(400).json({
-    //         error: "Name allready exist in the phone book"
-    //     })
     } else {
-        persons.save()
+        person.save()
         .then(savedPerson =>  savedPerson.toJSON())
         .then(personSaved => {
             console.log(`added ${persons.name} number ${persons.phone} to phonebook`)
@@ -83,12 +106,26 @@ app.post('/api/persons/', (request, response, next) => {
 
 })
 
+
 app.get('/api/persons', (request, response, next) => {
-person.find({}).then(result => {
+  persons.find({})
+  .then(result => {
     response.json(result)
-    mongoose.connection.close()
   }) 
 })
+
+//error management
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+app.use(errorHandler)
+
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
