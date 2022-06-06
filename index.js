@@ -61,18 +61,20 @@ app.delete('/api/persons/:id', (request, response, next) => {
 //modify a person request
 app.put('/api/persons/:id', (request, response, next) => {
   const {id} = request.params
-  const newUpdate = request.body
   
+  const newUpdate = request.body
+
   const contactUpdate = {
-    name: newperson.name,
-    phone: newUpdate.number
+    name: newUpdate.name,
+    phone: newUpdate.phone
   }
-    persons.findByIdAndUpdate( id, contactUpdate, { new: true } )
+
+    persons.findByIdAndUpdate( id, contactUpdate, { new: true })
     .then( result => {
       console.log('Person:',result);
         response.status(204).end()
     })
-    // .catch( err => mext(err))
+    .catch( err => next(err))
 
 })
 
@@ -82,13 +84,13 @@ app.post('/api/persons/', (request, response, next) => {
     const body = request.body
 
     const newPerson = body.name
-    const newNumber = body.number
+    const newPhone = body.phone
 
     const person = new persons({
         name: newPerson,
-        phone: newNumber,
+        phone: newPhone,
     })
-    if (!newPerson || !newNumber) {
+    if (!newPerson || !newPhone) {
         response.status(400).json({
             error: "Missing name or number"
         })
@@ -114,7 +116,7 @@ app.get('/api/persons', (request, response, next) => {
   }) 
 })
 
-//error management
+//error handle
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
