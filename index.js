@@ -56,6 +56,9 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch( error => next(error))
     console.log('Error from delete middleware',error)
     response.status(400).send({ error: 'malformed id' })
+
+
+    
 })
 
 //modify a person request

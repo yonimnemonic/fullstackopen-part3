@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+var uniqueValidator = require('mongoose-unique-validator');
 require('dotenv').config()
 
 
@@ -12,9 +13,19 @@ const connection = mongoose.connect(url)
 })
 
 const personSchema = new mongoose.Schema({
-  name: String,
-  phone: String,
+  name: {
+    type: String,
+    minlength: 3,
+    required: true,
+    unique: true,
+  },
+  phone: {
+    type: String,
+    minlength: 8,
+    required: true
+  }
 })
+personSchema.plugin(uniqueValidator, { message: 'The {VALUE} must to be unique!'})
 
 //transform id to string format
 personSchema.set( 'toJSON', {
